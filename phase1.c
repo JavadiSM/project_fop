@@ -138,6 +138,12 @@ int finder(char *starting,char *ending){
     }
 }
 void add_file(int argc, char *argv[],int i) {
+    FILE *sdfsd=fopen("JAVAD\\added.txt","r");
+    if (sdfsd== NULL) {
+        printf("\ano repository found\nError opening the file.\n");
+        fclose(sdfsd);
+        return;
+    }
     if(searchWordInFile("JAVAD\\added.txt",argv[i])){
         return;
     }
@@ -154,9 +160,57 @@ void add_file(int argc, char *argv[],int i) {
     fprintf(fp,"%s\n",argv[i]);
     fclose(fp);
 }
+void show_added(int argc,char *argv[]){
+    system("dir /B > \"JAVAD\\current.txt\"");
+    FILE *fp_add = fopen("JAVAD\\added.txt", "r");
+    FILE *fp_cur = fopen("JAVAD\\current.txt", "r");
+    if (fp_add== NULL||fp_cur== NULL) {
+        printf("\ano repository found\nError opening the file.\n");
+        return;
+    }
+    int n=countLinesInFile("JAVAD\\current.txt");
+    char *hey=(char *)malloc(100);
+    SetColor(RED);
+    puts("unstaged ones:\n");
+    for(int i=0;i<n;i++){
+        fgets(hey,100,fp_cur);
+        if(!searchWordInFile("JAVAD\\added.txt",hey)){
+            puts(hey);
+        }
+    }
+    SetColor(GREEN);
+    fgets(hey,100,fp_add);
+    puts("staged ones:\n");
+    while(fgets(hey,100,fp_add)!=NULL){
+        puts(hey);
+    }
+    SetColor(WHITE);
+    fclose(fp_add);
+    fclose(fp_cur);
+}
 
+void reset(int argc,char * argv[],int counter){
+    system("dir /B > \"JAVAD\\current.txt\"");
+    FILE *stg = fopen("JAVAD\\added.txt", "r");
+    FILE *tempstg = fopen("JAVAD\\addedtemp.txt", "w");
+    FILE *unstg = fopen("JAVAD\\unstaged.txt", "a");
+    fprintf(unstg,"%s\n",argv[counter]);
+    char *ch=malloc(100);
 
-
+    while(fgets(ch,100,stg)!=NULL){
+        if(strcmp(ch,argv[counter])==0){
+            ;
+        }
+        else{
+            fprintf(tempstg,"%s",ch);
+        }
+    }
+    fclose(stg);
+    fclose(tempstg);
+    fclose(unstg);
+    system("del JAVAD\\added.txt");
+    system("rename JAVAD\\addedtemp.txt added.txt");
+}
 
 
 
@@ -217,7 +271,24 @@ int main(int argc , char *argv[]){
         
     }
     else if(strcmp(argv[1],"add")==0){
-        if(argc==2){printf("add what dude?"); return 1;}
+        FILE *sdfsd=fopen("JAVAD\\added.txt","r");
+        if (sdfsd== NULL) {
+            printf("\ano repository found\nError opening the file.\n");
+            fclose(sdfsd);
+            return 1;
+        }
+        fclose(sdfsd);
+        if(argc==2){printf("\aadd what dude?"); return 1;}
+        if(strcmp(argv[2],"-n")==0){
+            if(argc!=4){printf("\ahow many dude!"); return 1;}
+            show_added(argc,argv);
+            return 0;
+        }
+        if(strcmp(argv[2],"-redo")==0){
+            if(argc!=3){printf("\atoooooo many dude!"); return 1;}
+            // add_(argc,argv);
+            return 0;
+        }
         if(strcmp(argv[2],"-f")!=0){
             for(int i=2;i<argc;i++){
                 add_file(argc,argv,i);
@@ -236,10 +307,26 @@ int main(int argc , char *argv[]){
         }
         return 0;
     }
+    else if(strcmp(argv[1],"reset")==0){
+        // if(argc!=3){printf("\atoo many args"); return 1;}
+        for(int i=2;i<argc;i++){
+            // add_file(argc,argv,i);
+            char *tmp=malloc(200);
+            sprintf(tmp,"copy JAVAD\\staged\\%s JAVAD\\unstaged\\%s",argv[i],argv[i]);
+            system(tmp);
+            sprintf(tmp,"del JAVAD\\staged\\%s",argv[i]);
+            system(tmp);
+            reset(argc,argv,i);
+        }
+        return 0;
+    }
+    //cmd command:rename oldfilename.txt newfilename.txt
     else if(0){
 
     }
     else if(strcmp(argv[1],"init")==0){
-        system("if exist JAVAD (echo there is already a repository there!) else (mkdir JAVAD && attrib +h JAVAD &&mkdir JAVAD\\staged && mkdir JAVAD\\commits&& echo repository has been created && dir /B > \"JAVAD\\current.txt\" && echo >\"JAVAD\\added.txt\")");
+        if(argc!=2){printf("\awhat???"); return 1;}
+        system("if exist JAVAD (echo there is already a repository there!) else (mkdir JAVAD && attrib +h JAVAD &&mkdir JAVAD\\staged &&mkdir JAVAD\\unstaged && mkdir JAVAD\\commits&& echo repository has been created && dir /B > \"JAVAD\\current.txt\" && echo  >\"JAVAD\\added.txt\" 2>nul && echo  >\"JAVAD\\unstaged.txt\" 2>nul)  ");
+        return 0;
     }
 }
