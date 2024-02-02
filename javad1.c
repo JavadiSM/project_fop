@@ -1095,6 +1095,5 @@ int main(int argc , char *argv[]){
         commit(argc,argv);
         return 0;
     }
-    puts("wrong syntax\a");
     return 0;
 }
